@@ -4,12 +4,18 @@ import {
   onSnapshot,
   doc,
   updateDoc,
+  query,
+  orderBy,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../components/firebase";
 import { useNavigate } from "react-router-dom";
+import WeeklyBookingChart from "../components/WeeklyBookingChart";
+import MenuManager from "../components/menuManager";
 
 const AdminDashboard = () => {
-  const navigate = useNavigate(); // ✅ Added
+  const navigate = useNavigate();
+
   const [bookings, setBookings] = useState([]);
   const [stats, setStats] = useState({
     totalBookings: 0,
@@ -18,40 +24,43 @@ const AdminDashboard = () => {
     pendingReservations: 0,
   });
 
-  // 🔄 Real-time listener
+  // 🔥 Real-time listener (sorted latest first)
   useEffect(() => {
-    const unsubscribe = onSnapshot(
+    const q = query(
       collection(db, "Bookings"),
-      (snapshot) => {
-        const bookingData = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setBookings(bookingData);
-
-        const totalBookings = bookingData.length;
-
-        const totalRevenue = bookingData
-          .filter((b) => b.paymentStatus === "paid")
-          .reduce((sum, b) => sum + Number(b.amount || 0), 0);
-
-        const activeReservations = bookingData.filter(
-          (b) => b.status === "confirmed"
-        ).length;
-
-        const pendingReservations = bookingData.filter(
-          (b) => b.status === "pending"
-        ).length;
-
-        setStats({
-          totalBookings,
-          totalRevenue,
-          activeReservations,
-          pendingReservations,
-        });
-      }
+      orderBy("date", "desc")
     );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const bookingData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setBookings(bookingData);
+
+      // 📊 Stats calculation
+      const totalBookings = bookingData.length;
+
+      const totalRevenue = bookingData
+        .filter((b) => b.paymentStatus === "paid")
+        .reduce((sum, b) => sum + Number(b.amount || 0), 0);
+
+      const activeReservations = bookingData.filter(
+        (b) => b.status === "confirmed"
+      ).length;
+
+      const pendingReservations = bookingData.filter(
+        (b) => b.status === "pending"
+      ).length;
+
+      setStats({
+        totalBookings,
+        totalRevenue,
+        activeReservations,
+        pendingReservations,
+      });
+    });
 
     return () => unsubscribe();
   }, []);
@@ -59,14 +68,21 @@ const AdminDashboard = () => {
   // ✅ Update booking status
   const updateStatus = async (id, newStatus) => {
     try {
-      await updateDoc(doc(db, "Bookings", id), {
+      const updateData = {
         status: newStatus,
         notification:
           newStatus === "confirmed"
             ? "Your table has been confirmed 🎉"
             : "Your reservation has been cancelled ❌",
         notificationRead: false,
-      });
+      };
+
+      // 🔥 Store confirmation timestamp
+      if (newStatus === "confirmed") {
+        updateData.confirmedAt = serverTimestamp();
+      }
+
+      await updateDoc(doc(db, "Bookings", id), updateData);
     } catch (error) {
       console.error("Error updating status:", error);
     }
@@ -85,7 +101,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-8">
-      
+
       {/* 🔙 Go Home Button */}
       <div className="mb-6">
         <button
@@ -96,37 +112,44 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold mb-8">
+        Admin Dashboard
+      </h1>
 
       {/* 📊 Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-gray-800 p-4 rounded-xl">
-          <h3>Total Bookings</h3>
-          <p className="text-xl font-bold">{stats.totalBookings}</p>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+        <div className="bg-gray-800 p-6 rounded-xl shadow">
+          <h3 className="text-gray-400">Total Bookings</h3>
+          <p className="text-2xl font-bold">{stats.totalBookings}</p>
         </div>
 
-        <div className="bg-green-800/30 p-4 rounded-xl">
-          <h3>Total Revenue</h3>
-          <p className="text-xl font-bold">₹{stats.totalRevenue}</p>
+        <div className="bg-green-800/30 p-6 rounded-xl shadow">
+          <h3 className="text-gray-400">Total Revenue</h3>
+          <p className="text-2xl font-bold text-green-400">
+            ₹{stats.totalRevenue}
+          </p>
         </div>
 
-        <div className="bg-blue-800/30 p-4 rounded-xl">
-          <h3>Confirmed</h3>
-          <p className="text-xl font-bold">
+        <div className="bg-blue-800/30 p-6 rounded-xl shadow">
+          <h3 className="text-gray-400">Confirmed</h3>
+          <p className="text-2xl font-bold text-blue-400">
             {stats.activeReservations}
           </p>
         </div>
 
-        <div className="bg-yellow-800/30 p-4 rounded-xl">
-          <h3>Pending</h3>
-          <p className="text-xl font-bold">
+        <div className="bg-yellow-800/30 p-6 rounded-xl shadow">
+          <h3 className="text-gray-400">Pending</h3>
+          <p className="text-2xl font-bold text-yellow-400">
             {stats.pendingReservations}
           </p>
         </div>
       </div>
 
-      {/* 📋 Booking Table */}
-      <div className="bg-gray-800 rounded-xl overflow-hidden">
+      {/* 📈 Weekly Chart */}
+      <WeeklyBookingChart bookings={bookings} />
+
+      {/* 📋 Bookings Table */}
+      <div className="bg-gray-800 rounded-xl overflow-hidden shadow mt-10">
         <table className="w-full">
           <thead className="bg-gray-700">
             <tr>
@@ -205,10 +228,7 @@ const AdminDashboard = () => {
                     booking.status === "confirmed") && (
                     <button
                       onClick={() =>
-                        updateStatus(
-                          booking.id,
-                          "cancelled"
-                        )
+                        updateStatus(booking.id, "cancelled")
                       }
                       className="bg-red-600 px-3 py-1 rounded"
                     >
@@ -221,6 +241,12 @@ const AdminDashboard = () => {
           </tbody>
         </table>
       </div>
+
+      {/* 🍽️ Menu Manager */}
+      <div className="mt-12">
+        <MenuManager />
+      </div>
+
     </div>
   );
 };

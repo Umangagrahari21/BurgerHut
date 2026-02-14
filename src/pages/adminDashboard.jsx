@@ -27,6 +27,7 @@ const AdminDashboard = () => {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [hiddenBookings, setHiddenBookings] = useState([]);
 
   // 🔥 Real-time listener (sorted latest first)
   useEffect(() => {
@@ -103,8 +104,16 @@ const AdminDashboard = () => {
     }
   };
 
+  // 🗑️ Hide booking from dashboard (doesn't delete from database)
+  const hideBooking = (id) => {
+    setHiddenBookings([...hiddenBookings, id]);
+  };
+
   // Filter bookings
   const filteredBookings = bookings.filter((booking) => {
+    // Exclude hidden bookings
+    if (hiddenBookings.includes(booking.id)) return false;
+    
     const matchesSearch = booking.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          booking.date.includes(searchTerm) ||
                          booking.time.includes(searchTerm);
@@ -336,6 +345,14 @@ const AdminDashboard = () => {
                             ❌ Cancel
                           </button>
                         )}
+
+                        <button
+                          onClick={() => hideBooking(booking.id)}
+                          className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 px-3 py-1.5 rounded-xl font-semibold text-xs transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
+                          title="Remove from dashboard view"
+                        >
+                          🗑️ Delete
+                        </button>
                       </div>
                     </td>
                   </tr>

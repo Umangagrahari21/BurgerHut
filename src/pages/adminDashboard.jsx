@@ -12,6 +12,8 @@ import { db } from "../components/firebase";
 import { useNavigate } from "react-router-dom";
 import WeeklyBookingChart from "../components/WeeklyBookingChart";
 import MenuManager from "../components/menuManager";
+import MenuOrders from "../components/MenuOrders";
+
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -245,6 +247,11 @@ const AdminDashboard = () => {
       {/* 🍽️ Menu Manager */}
       <div className="mt-12">
         <MenuManager />
+      </div>
+
+      {/* 🍽️ Menu Order */}
+      <div className="mt-12">
+        <MenuOrders />
       </div>
 
     </div>

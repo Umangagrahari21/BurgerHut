@@ -48,7 +48,7 @@ const Cart = () => {
                 onClick={() => navigate("/")}
                 className="mt-6 bg-gradient-to-r from-yellow-500 to-orange-500 text-black px-8 py-3 rounded-full font-semibold hover:from-yellow-600 hover:to-orange-600 transition-all duration-300"
               >
-                Start Shopping
+                Start your order
               </button>
             </div>
           ) : (

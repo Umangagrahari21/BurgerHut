@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import './App.css';
 import { auth } from './components/firebase';
 import Navbar from './components/Navbar';
@@ -15,6 +14,10 @@ import BurgerHutAbout from './pages/BurgerHutAbout';
 import ReservationForm from './pages/ReservationForm';
 import BurgerMenu from './pages/BurgerMenu';
 import BurgerHutContact from './pages/Contact';
+import AdminDashboard from './pages/adminDashboard';
+import AdminRoute from "./components/AdminRoute";
+
+
 
 function HomePage({ user }) {
   return (
@@ -48,10 +51,20 @@ function App() {
     <Router>
       <ToastContainer limit={1} position="top-center" autoClose={3000} />
       <Routes>
-        <Route path="/" element={<HomePage user={user} />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Routes>
+  <Route path="/" element={<HomePage user={user} />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/register" element={<Register />} />
+
+  <Route
+    path="/admin"
+    element={
+      <AdminRoute user={user}>
+        <AdminDashboard user={user} />
+      </AdminRoute>
+    }
+  />
+</Routes>
+
     </Router>
   );
 }

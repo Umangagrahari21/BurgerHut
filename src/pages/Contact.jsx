@@ -84,10 +84,10 @@ const BergerHutContact = () => {
   ];
 
   const socialLinks = [
-    { icon: '📘', label: 'Facebook', href: '#' },
-    { icon: '📷', label: 'Instagram', href: '#' },
-    { icon: '🐦', label: 'Twitter', href: '#' },
-    { icon: '🎵', label: 'TikTok', href: '#' }
+    { icon: '', label: 'Facebook', href: '#' },
+    { icon: '', label: 'Instagram', href: '#' },
+    { icon: '', label: 'Twitter', href: '#' },
+    { icon: '', label: 'TikTok', href: '#' }
   ];
 
   return (
@@ -140,7 +140,7 @@ const BergerHutContact = () => {
               </div>
 
               {/* Social Links */}
-              <div className="mt-12 text-center">
+              {/* <div className="mt-12 text-center">
                 <h4 className="text-yellow-600 mb-5 font-serif text-xl">
                   Follow Us
                 </h4>
@@ -156,12 +156,12 @@ const BergerHutContact = () => {
                     </button>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {/* Map Placeholder */}
               <div className="mt-12 h-72 bg-white/10 border border-yellow-600/20 rounded-2xl flex items-center justify-center text-gray-400 text-lg backdrop-blur-sm">
                 <span className="mr-3 text-xl">🗺️</span>
-                Interactive Map Coming Soon
+                Interactive Map Coming Soon 
               </div>
             </div>
 

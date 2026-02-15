@@ -7,11 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔐 Firebase Admin Setup
-const serviceAccount = require("./serviceAccountKey.json");
-
+// 🔐 Firebase Admin Setup (Render Safe)
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+  credential: admin.credential.cert(
+    JSON.parse(process.env.FIREBASE_KEY)
+  ),
 });
 
 const db = admin.firestore();

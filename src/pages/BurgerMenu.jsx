@@ -5,6 +5,7 @@ import { useCart } from "../context/CartContext";
 
 const BurgerMenu = () => {
   const [menuItems, setMenuItems] = useState([]);
+  const [addedItemId, setAddedItemId] = useState(null); // ✅ New state for feedback
   const { addToCart } = useCart(); // ✅ Global Cart
 
   // 🔥 Firestore Connection
@@ -76,7 +77,7 @@ const BurgerMenu = () => {
                 {menuItems.map((item) => (
                   <div
                     key={item.id}
-                    className={`bg-white/5 backdrop-blur-lg border rounded-2xl p-6 transition-all duration-500 ${
+                    className={`relative bg-white/5 backdrop-blur-lg border rounded-2xl p-6 transition-all duration-500 ${
                       item.status === "available"
                         ? "border-yellow-400/20 hover:-translate-y-2 hover:shadow-2xl"
                         : "border-gray-600/30 opacity-60"
@@ -110,10 +111,21 @@ const BurgerMenu = () => {
 
                       {item.status === "available" ? (
                         <button
-                          onClick={() => addToCart(item)} // ✅ GLOBAL CART
-                          className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg font-semibold"
+                          onClick={() => {
+                            addToCart(item);
+                            setAddedItemId(item.id);
+
+                            setTimeout(() => {
+                              setAddedItemId(null);
+                            }, 1500);
+                          }}
+                          className={`px-4 py-2 rounded-lg font-semibold transition-all duration-300 ${
+                            addedItemId === item.id
+                              ? "bg-green-500 text-white"
+                              : "bg-yellow-500 hover:bg-yellow-400 text-black"
+                          }`}
                         >
-                          Add to Cart
+                          {addedItemId === item.id ? "Added ✓" : "Add to Cart"}
                         </button>
                       ) : (
                         <button

@@ -1,5 +1,9 @@
 import React, { useState } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { 
+  signInWithEmailAndPassword, 
+  GoogleAuthProvider, 
+  signInWithPopup 
+} from "firebase/auth";
 import { toast } from "react-toastify";
 import { auth } from "./firebase";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,6 +16,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const provider = new GoogleAuthProvider();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -28,7 +33,7 @@ function Login() {
 
       toast.success("Login Successful!");
 
-      // Redirect based on email
+      // Redirect based on email (UNCHANGED)
       if (loggedUser.email === ADMIN_EMAIL) {
         navigate("/admin");
       } else {
@@ -42,6 +47,30 @@ function Login() {
     }
   };
 
+  // ✅ Google Login (Added)
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const loggedUser = result.user;
+
+      toast.success("Google Login Successful!");
+
+      // SAME ADMIN CHECK (UNCHANGED)
+      if (loggedUser.email === ADMIN_EMAIL) {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+
+    } catch (error) {
+      toast.error("Google sign-in failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div 
       className="flex items-center justify-center min-h-screen bg-black relative overflow-hidden"
@@ -50,7 +79,7 @@ function Login() {
         backgroundColor: '#000000'
       }}
     >
-      {/* Decorative burger icons */}
+      {/* Decorative icons */}
       <div className="absolute inset-0 pointer-events-none opacity-10">
         <div className="absolute top-20 left-10 text-6xl">🍔</div>
         <div className="absolute top-40 right-20 text-5xl">🍟</div>
@@ -69,7 +98,9 @@ function Login() {
         </h2>
 
         <div className="mb-6">
-          <label className="block text-white text-sm font-medium mb-2">Email address</label>
+          <label className="block text-white text-sm font-medium mb-2">
+            Email address
+          </label>
           <input
             type="email"
             placeholder="Enter your email"
@@ -81,8 +112,10 @@ function Login() {
           />
         </div>
 
-        <div className="mb-8">
-          <label className="block text-white text-sm font-medium mb-2">Password</label>
+        <div className="mb-6">
+          <label className="block text-white text-sm font-medium mb-2">
+            Password
+          </label>
           <input
             type="password"
             placeholder="Enter your password"
@@ -94,29 +127,40 @@ function Login() {
           />
         </div>
 
-        <div className="w-full">
+        {/* Email Login Button */}
+        <div className="w-full mb-4">
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-orange-400 disabled:cursor-not-allowed text-white font-bold text-lg py-3 rounded-lg transition duration-300 flex items-center justify-center shadow-lg"
           >
-            {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Logging in...
-              </>
-            ) : (
-              "Login"
-            )}
+            {loading ? "Logging in..." : "Login"}
+          </button>
+        </div>
+
+        {/* Google Login Button */}
+        <div className="w-full">
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full bg-white hover:bg-gray-100 disabled:bg-gray-200 text-black font-semibold py-3 rounded-lg transition duration-300 flex items-center justify-center shadow-lg border border-gray-300"
+          >
+            <img
+              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              alt="Google"
+              className="w-5 h-5 mr-3"
+            />
+            Continue with Google
           </button>
         </div>
 
         <p className="text-sm text-center mt-6 text-gray-400">
           New user?{" "}
-          <Link to="/register" className="text-yellow-500 hover:text-yellow-400 font-semibold hover:underline">
+          <Link
+            to="/register"
+            className="text-yellow-500 hover:text-yellow-400 font-semibold hover:underline"
+          >
             Register Here
           </Link>
         </p>
